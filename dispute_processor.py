@@ -10,7 +10,7 @@ from dispute_search_handler import matching_code, perform_search
 from shared_data import skipped_log_code
 
 
-FOLDER_PATH = r"C:\Users\Admin\Music\New folder\BETA_JOURNAL"
+FOLDER_PATH = r"C:\Users\Admin\Music\New folder\journal"
 
 def load_dispute_codes():
     file_list = glob.glob(os.path.join(FOLDER_PATH, "*.jpg"))
@@ -26,7 +26,7 @@ def process_disputes(driver, wait, log_code_list=None):
 
     for code in base_names:
         print(f"Processing code: {code}, Remaining in skipped list: {skipped_log_code}")
-        if count > 0 and count % 10 == 0:
+        if count > 0 and count % 20 == 0:
             _refresh(driver, wait) 
         count += 1
         print('count: ', count)
@@ -98,26 +98,23 @@ def validate_code(driver, wait, code):
 def handle_modal(driver, wait, code):
     file_path = os.path.join(FOLDER_PATH, f"{code}.jpg")
     try:
-        react_pop_up = wait.until(EC.presence_of_element_located((By.XPATH, "//div[@class='ReactModal__Content ReactModal__Content--after-open']")))
+        react_pop_up = wait.until(EC.visibility_of_element_located((By.XPATH, "//div[@class='ReactModal__Content ReactModal__Content--after-open']")))
         print(react_pop_up.get_attribute('innerHTML'))
 
-        # this code is not redundant, itsa a wait mechinsm for all buttons to load unless no button would load
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='dispute-modal-actions']/button")))
+        status = wait.until(EC.visibility_of_element_located((By.XPATH, "//div/label[text()='Status:']//following-sibling::label")))
+        status_text = status.text.strip()
+        print(status_text)
 
-        decline_btns = react_pop_up.find_elements(By.XPATH, "//div[@class='dispute-modal-actions']/button[text()='Decline']")
-        close_btns = react_pop_up.find_elements(By.XPATH, "//div[@class='dispute-modal-actions']/button[text()='CLOSE']")
+        close_btns = wait.until(EC.element_to_be_clickable((By.XPATH, "//div[@class='dispute-modal-actions']/button[text()='CLOSE']")))
+        print(close_btns.text)
 
-        for c in close_btns:
-            print(c.get_attribute('innerHTML'))
-
-        for d in decline_btns:
-            print(d.get_attribute("innerHTML"))
-
-        if decline_btns and close_btns:
-            print("Decline button found.")
+        if status_text == "Chargeback":
+            print("Has not been declined.")
+            wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[@class='dispute-modal-actions']/button)[3]")))
             handle_decline_button_clean_up(driver, wait, code, close_btns, file_path, react_pop_up)
-        elif close_btns:
-            print("CLOSE button found.")
+
+        elif status_text == 'Representment':
+            print("Already Declined.")
             handle_close_button_clean_up(driver, wait, code, close_btns, file_path)
         else:
             print(f"No actionable buttons found for {code}")

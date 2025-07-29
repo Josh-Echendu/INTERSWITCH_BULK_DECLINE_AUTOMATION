@@ -13,10 +13,16 @@ def attach_evidence(wait):
     attach_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[text()='Attach Evidence']")))
     attach_button.click()
 
-def decline_transaction(react_pop_up):
-    decline_btn = react_pop_up.find_element(By.XPATH, "(//div[@class='dispute-modal-actions']/button)[3]")
+def decline_transaction(react_pop_up, wait):
+    decline_btn = wait.until(EC.element_to_be_clickable((By.XPATH, "(//div[@class='dispute-modal-actions']/button)[3]")))
     decline_btn.click()
-    
+
+    # check_boxes = react_pop_up.find_elements(By.XPATH, "(//label/input[@type='checkbox'])[2]")
+
+    # if check_boxes:
+    #     if not check_boxes[0].is_selected():
+    #         check_boxes[0].click()
+
     yes_btn = react_pop_up.find_element(By.XPATH, "//button[text()='YES']")
     yes_btn.click()
 
@@ -50,7 +56,7 @@ def refresh_page(driver, value_u):
 
 def try_close_modal(driver, wait, close_buttons, value_u):
     try:
-        driver.execute_script("arguments[0].click();", close_buttons[0])
+        driver.execute_script("arguments[0].click();", close_buttons)
         wait.until(EC.invisibility_of_element_located((By.XPATH, "//div[@class='ReactModal__Content ReactModal__Content--after-open']")))
     except Exception as e:
         print(f"[{value_u}] Close button failed: {e}")
@@ -64,7 +70,7 @@ def handle_decline_button_clean_up(driver, wait, value_u, close_buttons, file_pa
 
         upload_evidence(wait, file_path)
         attach_evidence(wait)
-        decline_transaction(react_pop_up)
+        decline_transaction(react_pop_up, wait)
 
         print(f"{value_u}: successfully declined")
         print(f"{value_u}, transaction_ID marked for deletion")

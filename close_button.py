@@ -6,7 +6,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 def click_close_button(driver, wait, close_buttons, value_u):
     try:
-        driver.execute_script("arguments[0].click();", close_buttons[0])
+        driver.execute_script("arguments[0].click();", close_buttons)
         wait.until(EC.invisibility_of_element_located(
             (By.XPATH, "//div[@class='ReactModal__Content ReactModal__Content--after-open']")
         ))
